@@ -4,8 +4,11 @@
 
 import { PTUError } from './PTUError.js';
 import { NonUnicodeEOL } from './NonUnicodeEOL.js';
+import type { ParsedText } from './ParsedText.js';
 
 import {
+    UNICODE_LINE_SEPARATOR,
+    UNICODE_PARAGRAPH_SEPARATOR,
     PLAINTEXT_LINE_BREAK,
     EOL_UNIX
 } from './EOLs.js';
@@ -13,6 +16,71 @@ import {
 const ALL_NON_UNICODE_EOL = [ ... new Set( Object.values(NonUnicodeEOL) ) ];
 
 class PlainTextUni {
+
+    public text : ( ParsedText | null );  // Empty string => null
+
+    /**
+     * 
+     * @param text  - The plain-text to be parsed.
+     * @param nlfAs - Convert NLFs to Line-Separator (LS) or Paragraph-Separator (PS).
+     * @throws {PTUError}
+     *   2    not_string
+     */
+    constructor(text: string, nlfAs: ('LS'|'PS') = 'LS') {
+
+        // Declarations
+        let paragraphs : string[]   = [];
+        let lines      : string[]   = [];
+        let final      : ParsedText = [];
+
+        // Check inputs
+        if (typeof text !== 'string') {
+            throw new PTUError({
+                code: '2',
+                message: 'not_string'
+            });
+        }
+
+        // Empty string
+        if (text === '') {
+            this.text = null;
+            return;
+        }
+
+        // Normalize NLFs
+        text = PlainTextUni.normalize_eol(text);
+
+        if (nlfAs === 'PS') {
+            text = text.replaceAll(PLAINTEXT_LINE_BREAK, UNICODE_PARAGRAPH_SEPARATOR);
+        } else {
+            text = text.replaceAll(PLAINTEXT_LINE_BREAK, UNICODE_LINE_SEPARATOR);
+        }
+
+        // Parse the text
+        paragraphs = text.split(UNICODE_PARAGRAPH_SEPARATOR);
+
+        if (paragraphs.at(-1) !== '') {
+            paragraphs.push('');
+        }
+
+        for (const paragraph of paragraphs) {
+
+            if (paragraph === '') {
+                final.push([]);
+                continue;
+            }
+
+            lines = paragraph.split(UNICODE_LINE_SEPARATOR);
+            
+            if (lines.at(-1) !== '') {
+                lines.push('');
+            }
+
+            final.push(lines);
+        }
+
+        this.text = final;
+    }
 
     /**
      * Normalize end-of-line characters.
