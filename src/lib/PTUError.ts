@@ -5,6 +5,7 @@
  * 1        unknown
  * 2        not_string
  * 3        invalid_EOL
+ * 4        not_LS_or_PS
  */
 
 import { LMError } from "@leismore/lmos-nodejs-lmerror";
