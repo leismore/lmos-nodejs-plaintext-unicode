@@ -25,6 +25,7 @@ class PlainTextUni {
      * @param nlfAs - Convert NLFs to Line-Separator (LS) or Paragraph-Separator (PS).
      * @throws {PTUError}
      *   2    not_string
+     *   4    not_LS_or_PS
      */
     constructor(text: string, nlfAs: ('LS'|'PS') = 'LS') {
 
@@ -38,6 +39,13 @@ class PlainTextUni {
             throw new PTUError({
                 code: '2',
                 message: 'not_string'
+            });
+        }
+
+        if (nlfAs !== 'LS' && nlfAs !== 'PS') {
+            throw new PTUError({
+                code: '4',
+                message: 'not_LS_or_PS'
             });
         }
 
